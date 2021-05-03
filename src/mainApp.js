@@ -1,9 +1,10 @@
 const fs = require('fs');
 const puppeteer = require('puppeteer');
 const markets = require('../markets.json');
+const bot = require('./bot');
 
 // app logic section
-const fetchCoinSnapShot = async (market) => {
+const fetchCoinSnapShot = async (market, chatId) => {
     const baseUrl = `https://www.binance.com/zh-TW/trade/${market}?layout=pro&type=spot`;
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
@@ -39,6 +40,7 @@ const fetchCoinSnapShot = async (market) => {
     // replace prefix to properly save image to file
     fs.writeFileSync(`./output/${market}.png`, canvas.replace(/data:([A-Za-z-+\/]+);base64,/, ""), { encoding: 'base64' });
     console.log(`done saving ${market}.png`);
+    bot.sendMessage(chatId, `done fetching...${market}`);
     await browser.close();
 }
 
@@ -48,13 +50,17 @@ const clickOnElement = async (page, selector) => {
 }
 
 // fetch image according to markets.json setting
-const mainApp = async () => {
-    for(const market of markets) {
-        await fetchCoinSnapShot(market);
+const fetchAll = async (chatId) => {
+    const totalMarkets = `total markets in markets.json: ${markets.length}`;
+    console.log(totalMarkets);
+    bot.sendMessage(chatId, totalMarkets);
+    for(let i = 0; i < markets.length; i++) {
+        await fetchCoinSnapShot(markets[i], chatId);
+        bot.sendMessage(chatId, `fetch count: ${i + 1}`);
     }
 }
 
 module.exports = {
     fetchCoinSnapShot,
-    mainApp
+    fetchAll
 }
