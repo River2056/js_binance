@@ -6,6 +6,13 @@ const bot = require('./bot');
 // app logic section
 const fetchCoinSnapShot = async (market, chatId) => {
     try {
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1;
+        let day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+        let hour = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+        let minute = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+        let second = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
         const baseUrl = `https://www.binance.com/zh-TW/trade/${market}?layout=pro&type=spot`;
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
@@ -39,13 +46,17 @@ const fetchCoinSnapShot = async (market, chatId) => {
         );
 
         // replace prefix to properly save image to file
-        fs.writeFileSync(`./output/${market}.png`, canvas.replace(/data:([A-Za-z-+\/]+);base64,/, ""), { encoding: 'base64' });
+        fs.writeFileSync(`./output/${market}_${year}-${month}-${day}_${hour}:${minute}:${second}.png`, canvas.replace(/data:([A-Za-z-+\/]+);base64,/, ""), { encoding: 'base64' });
         console.log(`done saving ${market}.png`);
-        bot.sendMessage(chatId, `done fetching...${market}`);
+        if(chatId != null) {
+            bot.sendMessage(chatId, `done fetching...${market}`);
+        }
         await browser.close();
     } catch(e) {
         console.log('something wrong happened: ', e);
-        bot.sendMessage(chatId, `something wrong happened, please try again! ${e}`);
+        if(chatId != null) {
+            bot.sendMessage(chatId, `something wrong happened, please try again! ${e}`);
+        }
     }
 }
 
@@ -58,10 +69,14 @@ const clickOnElement = async (page, selector) => {
 const fetchAll = async (chatId) => {
     const totalMarkets = `total markets in markets.json: ${markets.length}`;
     console.log(totalMarkets);
-    bot.sendMessage(chatId, totalMarkets);
+    if(chatId != null) {
+        bot.sendMessage(chatId, totalMarkets);
+    }
     for(let i = 0; i < markets.length; i++) {
         await fetchCoinSnapShot(markets[i], chatId);
-        bot.sendMessage(chatId, `fetch count: ${i + 1}`);
+        if(chatId != null) {
+            bot.sendMessage(chatId, `fetch count: ${i + 1}`);
+        }
     }
 }
 
