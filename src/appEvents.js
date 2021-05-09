@@ -14,8 +14,10 @@ eventEmitter.on('start-app', (msg, keyboardObjs) => {
             "reply_markup": {
                 "keyboard": [
                     [{ "text": "/help", "callback_data": "/help" }],
-                    [{ "text": "/fetchAll", "callback_data": "/fetchAll" }],
-                    [{ "text": "/clearFiles", "callback_data": "/clearFiles" }],
+                    [
+                        { "text": "/fetchAll", "callback_data": "/fetchAll" },
+                        { "text": "/clearFiles", "callback_data": "/clearFiles" }
+                    ],
                     ...keyboardObjs
                 ]
             }
