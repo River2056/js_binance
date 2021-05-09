@@ -3,12 +3,10 @@ const path = require('path');
 const { EventEmitter } = require('events');
 const { fetchAll, fetchCoinSnapShot } = require('./mainApp');
 const bot = require('./bot');
-const markets = require('../markets.json');
 
 const eventEmitter = new EventEmitter();
 
-eventEmitter.on('start-app', msg => {
-    const individualMarketKeyboard = markets.map(market => ({ "text": market, "callback_data": market }));
+eventEmitter.on('start-app', (msg, keyboardObjs) => {
     bot.sendMessage(
         msg.chat.id, 
         'Welcome to River\'s auto fetch cryptocurrency snapshot bot', 
@@ -18,7 +16,7 @@ eventEmitter.on('start-app', msg => {
                     [{ "text": "/help", "callback_data": "/help" }],
                     [{ "text": "/fetchAll", "callback_data": "/fetchAll" }],
                     [{ "text": "/clearFiles", "callback_data": "/clearFiles" }],
-                    [...individualMarketKeyboard]
+                    ...keyboardObjs
                 ]
             }
         }
@@ -42,7 +40,6 @@ eventEmitter.on('help', msg => {
 eventEmitter.on('fetch-all', msg => {
     bot.sendMessage(msg.chat.id, 'fetching snapshots from binance...');
     bot.sendMessage(msg.chat.id, 'this might take a moment, please wait...');
-    // await fetchAll(msg.chat.id);
     bot.sendMessage(msg.chat.id, 'done fetching all markets!');
     let images = fs.readdirSync('./output/');
     images.forEach(image => {
@@ -57,8 +54,6 @@ eventEmitter.on('message', async msg => {
     if(regex.test(market)) {
         // fetch single snapshot
         bot.sendMessage(msg.chat.id, `fetching single market klines...${market}`);
-        // await fetchCoinSnapShot(market, msg.chat.id);
-        // bot.sendMessage(msg.chat.id, 'done fetching!');
         let images = fs.readdirSync('./output/');
         let checkImageExists = images.filter(image => image.startsWith(market));
         if(checkImageExists == null || checkImageExists == undefined || checkImageExists.length === 0) {
